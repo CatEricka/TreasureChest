@@ -5,7 +5,7 @@ main: com.mtihc.minecraft.treasurechest.v8.plugin.TreasureChestPlugin
 startup: postworld
 url: http://dev.bukkit.org/server-mods/treasurechest/
 depend: []
-softdepend: [Vault, WorldEdit]
+softdepend: [Vault, WorldEdit, MMOItems, MythicLib]
 version: 8.5
 api-version: 1.14
 commands:

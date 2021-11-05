@@ -1,5 +1,6 @@
 package com.mtihc.minecraft.treasurechest.v8.plugin;
 
+import com.mtihc.minecraft.treasurechest.v8.compatible.mmoitems.MMOItemsSupport;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -32,42 +33,41 @@ import com.mtihc.minecraft.treasurechest.v8.util.commands.CommandException;
 import com.mtihc.minecraft.treasurechest.v8.util.commands.SimpleCommand;
 
 public class TreasureChestPlugin extends JavaPlugin implements Listener {
-	
-	
-	
-	
-	
-	
+
+
+	static private MMOItemsSupport mmoItemsSupport;
+
+
 	private TreasureManagerConfiguration config;
 	private TreasureManager manager;
 	private SimpleCommand cmd;
-	
-	
-	
-	
-	
+
+
 	@Override
 	public void onEnable() {
 
+		// check plugins compatibility
+		mmoItemsSupport = new MMOItemsSupport(getServer().getPluginManager());
+
 		// create config
 		config = new TreasureManagerConfiguration(this, "config");
-		
+
 		// create manager
 		manager = new TreasureManager(
-				this, config, 
-				new TreasureChestRepository(getDataFolder() + "/treasure"), 
+				this, config,
+				new TreasureChestRepository(getDataFolder() + "/treasure"),
 				new TreasureChestGroupRepository(getDataFolder() + "/groups"),
-				new TreasureChestMemory(getDataFolder() + "/players"), 
-				Permission.ACCESS_TREASURE.getNode(), 
+				new TreasureChestMemory(getDataFolder() + "/players"),
+				Permission.ACCESS_TREASURE.getNode(),
 				Permission.ACCESS_UNLIMITED.getNode(),
 				Permission.RANK.getNode());
 
 		config.reload();
-		
+
 		// create command
 		cmd = new TreasureChestCommand(manager, null);
-		
-		
+
+
 		// register factories
 		manager.getRewardManager().setFactory(new AirRewardFactory());
 		manager.getRewardManager().setFactory(new BankRobberRewardFactory(this));
@@ -85,57 +85,46 @@ public class TreasureChestPlugin extends JavaPlugin implements Listener {
 		manager.getRewardManager().setFactory(new ScoreRewardFactory());
 		manager.getRewardManager().setFactory(new SpawnRewardFactory(this));
 		manager.getRewardManager().setFactory(new TeleportRewardFactory(this));
-		
+
 	}
-	
-	
-	
-	
-	
+
+
 	/**
-	 * 
 	 * @return the treasure manager
 	 */
 	public TreasureManager getManager() {
 		return manager;
 	}
-	
-	
-	
-	
-	
+
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
-			String label, String[] args) {
+							 String label, String[] args) {
 		String lbl = label.toLowerCase();
-		if(cmd.getLabel().equals(lbl) || search(cmd.getAliases(), lbl)) {
-			
-			
+		if (cmd.getLabel().equals(lbl) || search(cmd.getAliases(), lbl)) {
+
+
 			try {
 				cmd.execute(sender, args);
 			} catch (CommandException e) {
 				sender.sendMessage(ChatColor.RED + e.getMessage());
 			}
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
-	
+
 	private boolean search(String[] array, String string) {
 		for (String e : array) {
-			if(e.equalsIgnoreCase(string)) {
+			if (e.equalsIgnoreCase(string)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	
-	
-	
-	
+
+
 	@Override
 	public FileConfiguration getConfig() {
 		return config.getConfig();
@@ -150,9 +139,10 @@ public class TreasureChestPlugin extends JavaPlugin implements Listener {
 	public void saveConfig() {
 		config.save();
 	}
-	
-	
-	
-	
-	
+
+
+	static public MMOItemsSupport getMMOItemsSupport() {
+		return mmoItemsSupport;
+	}
+
 }

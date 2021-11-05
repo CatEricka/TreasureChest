@@ -2,8 +2,11 @@ package com.mtihc.minecraft.treasurechest.v8.core;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import com.mtihc.minecraft.treasurechest.v8.compatible.mmoitems.MMOItemWrapper;
+import com.mtihc.minecraft.treasurechest.v8.plugin.TreasureChestPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,9 +19,8 @@ import org.bukkit.util.Vector;
 
 /**
  * Class representing a block with an inventory.
- * 
- * @author Mitch
  *
+ * @author Mitch
  */
 public class BlockInventory implements IBlockInventory {
 
@@ -26,7 +28,7 @@ public class BlockInventory implements IBlockInventory {
 	private InventoryType type;
 	private int size;
 	private ItemStack[] contents;
-	
+
 	/*
 	 * @deprecated This constructor is only required to convert from v7 to v8
 	 */
@@ -52,11 +54,12 @@ public class BlockInventory implements IBlockInventory {
 
 	/**
 	 * Constructor.
-	 * @param location the block location
+	 *
+	 * @param location  the block location
 	 * @param inventory the inventory
 	 */
 	public BlockInventory(Location location, Inventory inventory) {
-		if(inventory instanceof DoubleChestInventory) {
+		if (inventory instanceof DoubleChestInventory) {
 			throw new IllegalArgumentException("Parameter inventory cannot be a DoubleChestInventory.");
 		}
 		this.location = location;
@@ -64,9 +67,10 @@ public class BlockInventory implements IBlockInventory {
 		this.size = inventory.getSize();
 		this.contents = inventory.getContents();
 	}
-	
+
 	/**
 	 * Deserialization constructor.
+	 *
 	 * @param values the serialized values
 	 */
 	public BlockInventory(Map<String, Object> values) {
@@ -75,7 +79,7 @@ public class BlockInventory implements IBlockInventory {
 		location = coords.toLocation(world);
 		type = InventoryType.valueOf((String) values.get("type"));
 		size = (Integer) values.get("size");
-		
+
 		contents = new ItemStack[size];
 		Map<?, ?> contentsSection = (Map<?, ?>) values.get("contents");
 		Set<?> contentsEntries = contentsSection.entrySet();
@@ -83,22 +87,25 @@ public class BlockInventory implements IBlockInventory {
 		for (Object object : contentsEntries) {
 			Map.Entry<?, ?> entry = (Map.Entry<?, ?>) object;
 			String key = (String) entry.getKey();
-			
+
 			ItemStack item;
-			if(entry.getValue() instanceof ItemStack) {
+			if (entry.getValue() instanceof ItemStack) {
 				item = (ItemStack) entry.getValue();
-			}
-			else if(entry.getValue() instanceof ItemStackWrapper){
+			} else if (entry.getValue() instanceof ItemStackWrapper) {
 				item = ((ItemStackWrapper) entry.getValue()).getItemStack();
-			}
-			else {
+			} else if (TreasureChestPlugin.getMMOItemsSupport().supported() && entry.getValue() instanceof MMOItemWrapper) {
+				item = TreasureChestPlugin
+						.getMMOItemsSupport()
+						.buildItemStack((MMOItemWrapper) entry.getValue())
+						.orElse(null);
+			} else {
 				item = null;
 			}
 			int index = Integer.parseInt(key.substring(substringBeginIndex));
-			
+
 			contents[index] = item;
 		}
-		
+
 	}
 
 	@Override
@@ -108,21 +115,33 @@ public class BlockInventory implements IBlockInventory {
 		values.put("coords", location.toVector());
 		values.put("type", type.name());
 		values.put("size", size);
-		
-		
+
+
 		Map<String, Object> contentsSection = new LinkedHashMap<String, Object>();
 		for (int i = 0; i < contents.length; i++) {
 			ItemStack item = contents[i];
-			if(item == null || item.getType() == Material.AIR) { 
+			if (item == null || item.getType() == Material.AIR) {
 				continue;
 			}
-			
+
+
 			Object element = item;
-			element = new ItemStackWrapper(item);
+			if (TreasureChestPlugin.getMMOItemsSupport().supported()) {
+				Optional<MMOItemWrapper> mmoItemWrapper = TreasureChestPlugin
+						.getMMOItemsSupport()
+						.newMMOItemWrapper(item);
+				if (mmoItemWrapper.isPresent()) {
+					element = mmoItemWrapper.get();
+				} else {
+					element = new ItemStackWrapper(item);
+				}
+			} else {
+				element = new ItemStackWrapper(item);
+			}
 			contentsSection.put("item" + i, element);
 		}
 		values.put("contents", contentsSection);
-		
+
 		return values;
 	}
 
