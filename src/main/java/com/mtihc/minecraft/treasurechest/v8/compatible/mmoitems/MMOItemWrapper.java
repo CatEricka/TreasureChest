@@ -7,46 +7,46 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MMOItemWrapper implements ConfigurationSerializable {
-    private String type, id;
-    private int amount;
+	final private String type, id;
+	final private int amount;
 
-    MMOItemWrapper(String type, String id, int amount) {
-        this.type = type;
-        this.id = id;
-        this.amount = amount;
-    }
+	MMOItemWrapper(String type, String id, int amount) {
+		this.type = type;
+		this.id = id;
+		this.amount = amount;
+	}
 
-    /**
-     * Deserialization constructor.
-     *
-     * @param values the serialized values
-     */
-    public MMOItemWrapper(Map<String, Object> values) {
-        type = (String) values.get("type");
-        id = (String) values.get("id");
-        amount = (int) values.get("amount");
-    }
+	/**
+	 * Deserialization constructor.
+	 *
+	 * @param values the serialized values
+	 */
+	public MMOItemWrapper(Map<String, Object> values) {
+		type = (String) values.get("type");
+		id = (String) values.get("id");
+		amount = (int) values.get("amount");
+	}
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public int getAmount() {
-        return amount;
-    }
+	public int getAmount() {
+		return amount;
+	}
 
-    @NotNull
-    @Override
-    public Map<String, Object> serialize() {
-        Map<String, Object> values = new LinkedHashMap<String, Object>();
-        values.put("type", type);
-        values.put("id", id);
-        values.put("amount", amount);
+	@NotNull
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> values = new LinkedHashMap<>();
+		values.put("type", type);
+		values.put("id", id);
+		values.put("amount", amount);
 
-        return values;
-    }
+		return values;
+	}
 }
